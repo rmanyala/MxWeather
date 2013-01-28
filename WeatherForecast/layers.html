@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Map Layers POC</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+		<script src="assets/js/jquery-1.7.js"></script>
+		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0-alpha.1/jquery.mobile-1.2.0-alpha.1.min.css" />
+
+		<script src="http://code.jquery.com/mobile/1.2.0-alpha.1/jquery.mobile-1.2.0-alpha.1.min.js"></script>
+
+		<link rel="stylesheet" href="assets/css/marker_styles.css" />
+
+		<script type="text/javascript"
+		src="http://maps.googleapis.com/maps/api/js?libraries=weather,visualization&sensor=true"></script>
+
+		<script src="assets/js/infobox.js" type="text/javascript"></script>
+		<script src="assets/js/infobubble.js" type="text/javascript"></script>
+
+		<script type="text/javascript">
+			var showWeather = 1;
+			var showClouds = 0;
+			var showMap = 0;
+			var showHeatmap = 0;
+			var mapOptions;
+			var map;
+			var weatherLayer;
+			var cloudLayer;
+			var heatmap;
+
+			var lat = [];
+			var lng = [];
+			var city = [];
+			var marker;
+			var markersArray = [];
+			var ib = [];
+
+			//Houston
+			lat.push(29.7631);
+			lng.push(-95.3631);
+			city.push('Houston');
+
+			//San Antonio
+			lat.push(29.4239);
+			lng.push(-98.4933);
+			city.push('San Antonio');
+
+			//Dallas
+			lat.push(32.7828);
+			lng.push(-96.8039);
+			city.push('Dallas');
+
+			//Austin
+			lat.push(30.2669);
+			lng.push(-97.7428);
+			city.push('Austin');
+
+			//Fort Worth
+			lat.push(32.7253);
+			lng.push(-97.3206);
+			city.push('Fort Worth');
+
+			//El Paso
+			lat.push(31.7586);
+			lng.push(-106.4864);
+			city.push('El Paso');
+
+			//Arlington
+			/*	lat.push(32.7356);
+			 lng.push(-97.1078);
+			 city.push('Arlington');
+			 */
+
+			function createMap() {
+
+				mapOptions = {
+					center : new google.maps.LatLng(lat[0], lng[0]),
+					zoom : 6,
+					mapTypeId : google.maps.MapTypeId.TERRAIN
+				};
+				map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+
+				weatherLayer = new google.maps.weather.WeatherLayer({
+					temperatureUnits : google.maps.weather.TemperatureUnit.FAHRENHEIT
+				});
+				weatherLayer.setMap(null);
+
+				cloudLayer = new google.maps.weather.CloudLayer();
+				cloudLayer.setMap(null);
+
+				var infoBubble = new InfoBubble({
+					padding : 10,
+					borderRadius : 4,
+					arrowSize : 0,
+					arrowPosition : 30,
+					arrowStyle : 2,
+					minWidth : 450
+				});
+
+				for (var i = 0; i < lat.length; i++) {
+					var myLatlng = new google.maps.LatLng(lat[i], lng[i]);
+					marker = new google.maps.Marker({
+						position : myLatlng,
+						map : map,
+						title : city[i]
+					});
+
+					markersArray.push(marker);
+
+					//	marker.html = '<div>' + city[i] + ' <hr> ' + lat[i] + ', ' + lng[i] + ']</div>';
+					marker.html = '<div><h2> Weather Forecast for ' + city[i] + '<table border="1"><tr><td>Today</td><td>Tomorrow</td><td>Wed</td><td>Thur</td><td>Fri</td></tr><tr><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td></tr></table></div>';
+					var infowindow = new google.maps.InfoWindow({});
+
+					google.maps.event.addListener(marker, 'click', function() {
+						// Set the content of the InfoBubble or InfoWindow
+						// They both have a function called setContent
+						infoBubble.setContent(this.html);
+						infoBubble.open(map, this);
+					});
+
+				}
+
+			}
+
+
+			$(document).ready(function() {
+
+				createMap();
+
+				/*	$("#show_map").click(function() {
+				 if (showMap == 0) {
+				 showMap = 1;
+				 createMap();
+				 }
+				 });
+				 */
+
+				$("#toggle_weather").click(function() {
+					if (showWeather == 0) {
+						showWeather = 1;
+						weatherLayer.setMap(map);
+						//createMap();
+					} else {
+						showWeather = 0;
+						weatherLayer.setMap(null);
+						//createMap();
+					}
+				});
+
+				$("#toggle_clouds").click(function() {
+					if (showClouds == 0) {
+						showClouds = 1;
+						cloudLayer.setMap(map);
+						//createMap();
+					} else {
+						showClouds = 0;
+						cloudLayer.setMap(null);
+						//createMap();
+					}
+
+				});
+
+				$("#toggle_roads").click(function() {
+					map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
+
+				});
+
+				$("#toggle_terrain").click(function() {
+					map.setMapTypeId(google.maps.MapTypeId.TERRAIN);
+
+				});
+
+				$("#toggle_satellite").click(function() {
+					map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
+
+				});
+
+				//alert("End");
+			});
+		</script>
+
+		<style type="text/css">
+			html {
+				height: 100%
+			}
+			body {
+				height: 100%;
+				margin: 0;
+				padding: 0
+			}
+			#map_canvas {
+				height: 100%
+			}
+		</style>
+
+	</head>
+
+	<body >
+		<div data-role="page" style="width:100%; height:100%;">
+			<div class="ui-grid-d">
+
+				<!--	<div class="ui-block-b">
+				<a  data-role="button" id="show_map" data-theme="b">Show map</a>
+				</div> -->
+				<div class="ui-block-a">
+					<a  data-role="button" id="toggle_weather" data-theme="b"> Weather</a>
+				</div>
+				<div class="ui-block-b">
+					<a  data-role="button" id="toggle_clouds" data-theme="b"> Clouds</a>
+				</div>
+
+				<div class="ui-block-c">
+					<a  data-role="button" id="toggle_roads" data-theme="b"> Roads</a>
+				</div>
+
+				<div class="ui-block-d">
+					<a  data-role="button" id="toggle_terrain" data-theme="b"> Terrain</a>
+				</div>
+
+				<div class="ui-block-e">
+					<a  data-role="button" id="toggle_satellite" data-theme="b"> Satellite</a>
+				</div>
+
+			</div>
+			<div data-role="content" style="width:100%; height:100%;">
+				<div id="map_canvas" style="width:768x; height:1024px;"></div>
+			</div>
+		</div>
+
+	</body>
+
+</html>
+
